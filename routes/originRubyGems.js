@@ -3,8 +3,8 @@
 
 const asyncMiddleware = require('../middleware/asyncMiddleware')
 const router = require('express').Router()
-const requestPromise = require('request-promise-native')
 const { uniq } = require('lodash')
+const { callFetch } = require('../lib/fetch')
 
 // RubyGems API documentation: https://guides.rubygems.org/rubygems-org-api-v2/
 router.get(
@@ -12,7 +12,7 @@ router.get(
   asyncMiddleware(async (request, response) => {
     const { name } = request.params
     const url = `https://rubygems.org/api/v1/versions/${name}.json`
-    const answer = await requestPromise({ url, method: 'GET', json: true })
+    const answer = await callFetch({ url, method: 'GET', responseType: 'json' })
     const result = answer.map(entry => entry.number)
     return response.status(200).send(uniq(result))
   })
@@ -23,7 +23,7 @@ router.get(
   asyncMiddleware(async (request, response) => {
     const { name } = request.params
     const url = `https://rubygems.org/api/v1/search.json?query=${name}`
-    const answer = await requestPromise({ url, method: 'GET', json: true })
+    const answer = await callFetch({ url, method: 'GET', responseType: 'json' })
     const result = answer.map(entry => {
       return { id: entry.name }
     })

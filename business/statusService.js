@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation and others. Licensed under the MIT license.
 // SPDX-License-Identifier: MIT
 
-const requestPromise = require('request-promise-native')
 const logger = require('../providers/logging/logger')
+const { callFetch } = require('../lib/fetch')
 
 class StatusService {
   constructor(options, cache) {
@@ -44,7 +44,7 @@ class StatusService {
   }
 
   async _requestCount() {
-    const data = await requestPromise(
+    const data = await callFetch(
       this._serviceQuery(`
       requests
       | where timestamp > ago(90d)
@@ -58,7 +58,7 @@ class StatusService {
   }
 
   async _definitionAvailability() {
-    const data = await requestPromise(
+    const data = await callFetch(
       this._serviceQuery(`
       traces
       | where timestamp > ago(90d)
@@ -72,7 +72,7 @@ class StatusService {
   }
 
   async _processedPerDay() {
-    const data = await requestPromise(
+    const data = await callFetch(
       this._crawlerQuery(`
       traces
       | where timestamp > ago(90d)
@@ -93,7 +93,7 @@ class StatusService {
   }
 
   async _recentlyCrawled() {
-    const data = await requestPromise(
+    const data = await callFetch(
       this._crawlerQuery(`
       traces
       | where timestamp > ago(1d)
@@ -112,7 +112,7 @@ class StatusService {
   }
 
   async _crawlbreakdown() {
-    const data = await requestPromise(
+    const data = await callFetch(
       this._crawlerQuery(`
       traces
       | where timestamp > ago(90d) 
@@ -138,7 +138,7 @@ class StatusService {
   }
 
   async _toolsranperday() {
-    const data = await requestPromise(
+    const data = await callFetch(
       this._crawlerQuery(`
       traces
       | where timestamp > ago(90d) 
@@ -162,24 +162,21 @@ class StatusService {
   }
 
   _serviceQuery(query) {
-    return {
-      method: 'POST',
-      url: `https://api.applicationinsights.io/v1/apps/${this.options.serviceId}/query`,
-      headers: { 'X-Api-Key': this.options.serviceKey, 'Content-Type': 'application/json; charset=utf-8' },
-      body: { query },
-      withCredentials: false,
-      json: true
-    }
+    return this._buildQuery(this.options.serviceId, this.options.serviceKey, query)
   }
 
   _crawlerQuery(query) {
+    return this._buildQuery(this.options.crawlerId, this.options.crawlerKey, query)
+  }
+
+  _buildQuery(Id, key, query) {
     return {
       method: 'POST',
-      url: `https://api.applicationinsights.io/v1/apps/${this.options.crawlerId}/query`,
-      headers: { 'X-Api-Key': this.options.crawlerKey, 'Content-Type': 'application/json; charset=utf-8' },
+      url: `https://api.applicationinsights.io/v1/apps/${Id}/query`,
+      headers: { 'X-Api-Key': key, 'Content-Type': 'application/json; charset=utf-8' },
       body: { query },
       withCredentials: false,
-      json: true
+      responseType: 'json'
     }
   }
 

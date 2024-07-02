@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation and others. Licensed under the MIT license.
 // SPDX-License-Identifier: MIT
 
-const requestPromise = require('request-promise-native')
 const logger = require('../logging/logger')
+const { callFetch } = require('../../lib/fetch')
 
 class CrawlingHarvester {
   constructor(options) {
@@ -22,13 +22,7 @@ class CrawlingHarvester {
       }
     })
     const url = turbo ? `${this.options.url}/requests` : `${this.options.url}/requests/later`
-    return requestPromise({
-      url,
-      method: 'POST',
-      body,
-      headers,
-      json: true
-    })
+    return callFetch({ url, method: 'POST', body, headers, responeType: 'json' })
   }
 }
 

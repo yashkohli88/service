@@ -3,8 +3,8 @@
 
 const asyncMiddleware = require('../middleware/asyncMiddleware')
 const router = require('express').Router()
-const requestPromise = require('request-promise-native')
 const { uniq } = require('lodash')
+const { callFetch } = require('../lib/fetch')
 
 // Debian API documentation: https://sources.debian.org/doc/api/
 router.get(
@@ -12,7 +12,7 @@ router.get(
   asyncMiddleware(async (request, response) => {
     const { name } = request.params
     const url = `https://sources.debian.org/api/src/${name}`
-    const answer = await requestPromise({ url, method: 'GET', json: true })
+    const answer = await callFetch({ url, method: 'GET', responseType: 'json' })
     const result = answer.versions.map(version => version.version)
     return response.send(uniq(result))
   })
@@ -23,7 +23,7 @@ router.get(
   asyncMiddleware(async (request, response) => {
     const { name } = request.params
     const url = `https://sources.debian.org/api/search/${name}`
-    const answer = await requestPromise({ url, method: 'GET', json: true })
+    const answer = await callFetch({ url, method: 'GET', responseType: 'json' })
     const result = answer.results.other.map(entry => {
       return { id: entry.name }
     })

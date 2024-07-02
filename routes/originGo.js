@@ -3,8 +3,8 @@
 
 const asyncMiddleware = require('../middleware/asyncMiddleware')
 const router = require('express').Router()
-const requestPromise = require('request-promise-native')
 const { deCodeSlashes } = require('../lib/utils')
+const { callFetch } = require('../lib/fetch')
 
 // Get versions
 router.get(
@@ -14,7 +14,7 @@ router.get(
       const { name, namespace } = request.params
       const namespacePath = `${deCodeSlashes(namespace)}`
       const url = `https://proxy.golang.org/${namespacePath}/${name}/@v/list`
-      const answer = await requestPromise({ url, method: 'GET', json: true })
+      const answer = await callFetch({ url, method: 'GET', responseType: 'json' })
 
       // Split on new lines that are not followed by the end of the string
       // And convert into an array

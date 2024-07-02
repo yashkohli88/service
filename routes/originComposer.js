@@ -3,8 +3,8 @@
 
 const asyncMiddleware = require('../middleware/asyncMiddleware')
 const router = require('express').Router()
-const requestPromise = require('request-promise-native')
 const { uniq } = require('lodash')
+const { callFetch } = require('../lib/fetch')
 
 // Packagist API Documentation https://packagist.org/apidoc
 router.get(
@@ -13,7 +13,7 @@ router.get(
     const { namespace, name } = request.params
     const fullName = namespace ? `${namespace}/${name}` : name
     const url = `https://packagist.org/packages/${fullName}.json`
-    const answer = await requestPromise({ url, method: 'GET', json: true })
+    const answer = await callFetch({ url, method: 'GET', responseType: 'json' })
     const result = Object.getOwnPropertyNames(answer.package.versions)
       .map(version =>
         version.startsWith('v') && version[1] >= '0' && version[1] <= '9' ? version.substring(1) : version
@@ -29,7 +29,7 @@ router.get(
     const { namespace, name } = request.params
     const searchTerm = name ? `${namespace}/${name}` : namespace
     const url = `https://packagist.org/search.json?q=${searchTerm}&per_page=100`
-    const answer = await requestPromise({ url, method: 'GET', json: true })
+    const answer = await callFetch({ url, method: 'GET', responseType: 'json' })
     const result = answer.results.map(entry => {
       return { id: entry.name }
     })

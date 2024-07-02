@@ -3,8 +3,8 @@
 
 const asyncMiddleware = require('../middleware/asyncMiddleware')
 const router = require('express').Router()
-const requestPromise = require('request-promise-native')
 const { uniq } = require('lodash')
+const { callFetch } = require('../lib/fetch')
 
 // Nuget API documentation: https://docs.microsoft.com/en-us/nuget/api/overview
 router.get(
@@ -13,7 +13,7 @@ router.get(
     const baseUrl = 'https://api-v2v3search-0.nuget.org'
     const { name } = request.params
     const url = `${baseUrl}/autocomplete?id=${name}&prerelease=true`
-    const answer = await requestPromise({ url, method: 'GET', json: true })
+    const answer = await callFetch({ url, method: 'GET', responseType: 'json' })
     return response.status(200).send(uniq(answer.data))
   })
 )
@@ -24,7 +24,7 @@ router.get(
     const baseUrl = 'https://api-v2v3search-0.nuget.org'
     const { name } = request.params
     const url = `${baseUrl}/query?q=${name}`
-    const answer = await requestPromise({ url, method: 'GET', json: true })
+    const answer = await callFetch({ url, method: 'GET', responseType: 'json' })
     const result = answer.data.map(entry => {
       return { id: entry.id }
     })

@@ -1,10 +1,11 @@
 // Copyright (c) Microsoft Corporation and others. Licensed under the MIT license.
 // SPDX-License-Identifier: MIT
 
+const { callFetch } = require('../lib/fetch')
 const asyncMiddleware = require('../middleware/asyncMiddleware')
 const router = require('express').Router()
-const requestPromise = require('request-promise-native').defaults({ headers: { 'user-agent': 'clearlydefined.io' } })
 const { uniq } = require('lodash')
+const defaultHeaders = { 'user-agent': 'clearlydefined.io' }
 
 // maven.org API documentation https://search.maven.org/classic/#api
 
@@ -15,7 +16,7 @@ router.get(
     try {
       const { group, artifact } = request.params
       const url = `https://search.maven.org/solrsearch/select?q=g:"${group}"+AND+a:"${artifact}"&core=gav&rows=100&wt=json`
-      const answer = await requestPromise({ url, method: 'GET', json: true })
+      const answer = await callFetch({ url, method: 'GET', responseType: 'json', headers: defaultHeaders })
       const result = answer.response.docs.map(item => item.v)
       return response.status(200).send(uniq(result))
     } catch (error) {
@@ -33,12 +34,12 @@ router.get(
     const { group, artifact } = request.params
     if (request.path.indexOf('/', 1) > 0) {
       const url = `https://search.maven.org/solrsearch/select?q=g:"${group}"+AND+a:"${artifact}"&rows=100&wt=json`
-      const answer = await requestPromise({ url, method: 'GET', json: true })
+      const answer = await callFetch({ url, method: 'GET', responseType: 'json', headers: defaultHeaders })
       const result = getSuggestions(answer, group)
       return response.status(200).send(result)
     }
     const url = `https://search.maven.org/solrsearch/select?q=${group}&rows=100&wt=json`
-    const answer = await requestPromise({ url, method: 'GET', json: true })
+    const answer = await callFetch({ url, method: 'GET', responseType: 'json', headers: defaultHeaders })
     const result = getSuggestions(answer)
     return response.status(200).send(result)
   })

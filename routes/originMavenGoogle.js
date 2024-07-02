@@ -3,8 +3,8 @@
 
 const asyncMiddleware = require('../middleware/asyncMiddleware')
 const router = require('express').Router()
-const requestPromise = require('request-promise-native')
 const { promisify } = require('util')
+const { callFetch } = require('../lib/fetch')
 const parseString = promisify(require('xml2js').parseString)
 
 //Example URL to request XML file with group ID "android.arch.navigation": https://dl.google.com/android/maven2/android/arch/navigation/group-index.xml
@@ -17,7 +17,7 @@ router.get(
       const { group, artifact } = request.params
       const groupFullPath = `${group.replace(/\./g, '/')}`
       const url = `https://dl.google.com/android/maven2/${groupFullPath}/group-index.xml`
-      const answerXml = await requestPromise({ url, method: 'GET', json: false })
+      const answerXml = await callFetch({ url, method: 'GET', responseType: 'text' })
       const answerJson = await parseString(answerXml)
       const result = JSON.parse(JSON.stringify(answerJson))
       const revisions = JSON.stringify(result[`${group}`][`${artifact}`][0]['$']['versions'])

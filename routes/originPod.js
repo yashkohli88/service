@@ -3,8 +3,8 @@
 
 const asyncMiddleware = require('../middleware/asyncMiddleware')
 const router = require('express').Router()
-const requestPromise = require('request-promise-native')
 const { uniq } = require('lodash')
+const { callFetch } = require('../lib/fetch')
 
 // trunk.cocoapods.org API documentation: https://github.com/CocoaPods/trunk.cocoapods.org-api-doc
 router.get(
@@ -12,7 +12,7 @@ router.get(
   asyncMiddleware(async (request, response) => {
     const { name } = request.params
     const url = `https://trunk.cocoapods.org/api/v1/pods/${name}`
-    const answer = await requestPromise({ url, method: 'GET', json: true })
+    const answer = await callFetch({ url, method: 'GET', responseType: 'json' })
     return response.status(200).send(uniq(answer.versions.map(x => x.name)))
   })
 )
@@ -26,13 +26,13 @@ router.get(
       apiKey: '4f7544ca8701f9bf2a4e55daff1b09e9'
     }
     const url = `https://${algolia.appID}-dsn.algolia.net/1/indexes/cocoapods/query?x-algolia-application-id=${algolia.appID}&x-algolia-api-key=${algolia.apiKey}`
-    const answer = await requestPromise({
+    const answer = await callFetch({
       url,
       method: 'POST',
       body: {
         params: `query=${name}`
       },
-      json: true
+      responseType: 'json'
     })
     const result = answer.hits.map(x => {
       return { id: x.name }

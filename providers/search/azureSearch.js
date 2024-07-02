@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation and others. Licensed under the MIT license.
 // SPDX-License-Identifier: MIT
 
-const requestPromise = require('request-promise-native')
 const AbstractSearch = require('./abstractSearch')
+const { callFetch } = require('../../lib/fetch')
 
 const serviceUrlTemplate = 'https://$service$.search.windows.net'
 const apiVersion = '2019-05-06'
@@ -27,11 +27,11 @@ class AzureSearch extends AbstractSearch {
     const baseUrl = this._buildUrl(`indexes/${definitionsIndexName}/docs/suggest`)
     const validPattern = pattern.substring(0, 100)
     const url = `${baseUrl}&search=${validPattern}&suggesterName=suggester&$select=coordinates&$top=50`
-    const searchResult = await requestPromise({
+    const searchResult = await callFetch({
       method: 'GET',
       url,
       headers: this._getHeaders(),
-      json: true,
+      responseType: 'json',
       withCredentials: false
     })
     return searchResult.value.map(result => result.coordinates)
@@ -43,12 +43,12 @@ class AzureSearch extends AbstractSearch {
    * @returns {String[]} The search response. See https://docs.microsoft.com/en-us/rest/api/searchservice/search-documents#response
    */
   async query(body) {
-    return requestPromise({
+    return callFetch({
       method: 'POST',
       url: this._buildUrl(`indexes/${definitionsIndexName}/docs/search`),
       headers: this._getHeaders(),
       withCredentials: false,
-      json: true,
+      responseType: 'json',
       body
     })
   }
@@ -325,19 +325,19 @@ class AzureSearch extends AbstractSearch {
   }
 
   _createIndex(body) {
-    return requestPromise({
+    return callFetch({
       method: 'POST',
       url: this._buildUrl('indexes'),
       headers: this._getHeaders(),
       body,
       withCredentials: false,
-      json: true
+      responseType: 'json'
     })
     // TODO handle the status codes as described https://docs.microsoft.com/en-us/azure/search/search-import-data-rest-api
   }
 
   async _hasIndex(name) {
-    const index = await requestPromise({
+    const index = await callFetch({
       method: 'GET',
       url: this._buildUrl(`indexes/${name}`),
       headers: this._getHeaders(),
@@ -346,7 +346,7 @@ class AzureSearch extends AbstractSearch {
       resolveWithFullResponse: true,
       json: true
     })
-    return index.statusCode === 200
+    return index.status === 200
   }
 
   _buildDataSource() {
@@ -361,27 +361,27 @@ class AzureSearch extends AbstractSearch {
   }
 
   _createDataSource(body) {
-    return requestPromise({
+    return callFetch({
       method: 'POST',
       url: this._buildUrl('datasources'),
       headers: this._getHeaders(),
       body,
       withCredentials: false,
-      json: true
+      responseType: 'json'
     })
   }
 
   async _hasDataSource(name) {
-    const dataSource = await requestPromise({
+    const dataSource = await callFetch({
       method: 'GET',
       url: this._buildUrl(`datasources/${name}`),
       headers: this._getHeaders(),
       withCredentials: false,
       simple: false,
       resolveWithFullResponse: true,
-      json: true
+      responseType: 'json'
     })
-    return dataSource.statusCode === 200
+    return dataSource.status === 200
   }
 
   _buildIndexer() {
@@ -424,27 +424,27 @@ class AzureSearch extends AbstractSearch {
   }
 
   _createIndexer(body) {
-    return requestPromise({
+    return callFetch({
       method: 'POST',
       url: this._buildUrl('indexers'),
       headers: this._getHeaders(),
       body,
       withCredentials: false,
-      json: true
+      responseType: 'json'
     })
   }
 
   async _hasIndexer(name) {
-    const indexer = await requestPromise({
+    const indexer = await callFetch({
       method: 'GET',
       url: this._buildUrl(`indexers/${name}`),
       headers: this._getHeaders(),
       withCredentials: false,
       simple: false,
       resolveWithFullResponse: true,
-      json: true
+      responseType: 'json'
     })
-    return indexer.statusCode === 200
+    return indexer.status === 200
   }
 }
 

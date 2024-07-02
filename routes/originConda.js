@@ -3,9 +3,9 @@
 
 const asyncMiddleware = require('../middleware/asyncMiddleware')
 const router = require('express').Router()
-const requestPromise = require('request-promise-native')
 const { uniq } = require('lodash')
 const { Cache } = require('memory-cache')
+const { callFetch } = require('../lib/fetch')
 const condaChannels = {
   'anaconda-main': 'https://repo.anaconda.com/pkgs/main',
   'anaconda-r': 'https://repo.anaconda.com/pkgs/r',
@@ -17,7 +17,7 @@ async function fetchCondaChannelData(channel) {
   let channelData = condaCache.get(key)
   if (!channelData) {
     const url = `${condaChannels[channel]}/channeldata.json`
-    channelData = await requestPromise({ url, method: 'GET', json: true })
+    channelData = await callFetch({ url, method: 'GET', responseType: 'json' })
     condaCache.put(key, channelData, 8 * 60 * 60 * 1000) // 8 hours
   }
   return channelData
@@ -28,7 +28,7 @@ async function fetchCondaRepoData(channel, subdir) {
   let repoData = condaCache.get(key)
   if (!repoData) {
     const url = `${condaChannels[channel]}/${subdir}/repodata.json`
-    repoData = await requestPromise({ url, method: 'GET', json: true })
+    repoData = await callFetch({ url, method: 'GET', responseType: 'json' })
     condaCache.put(key, repoData, 8 * 60 * 60 * 1000) // 8 hours
   }
   return repoData
