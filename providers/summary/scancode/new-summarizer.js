@@ -142,16 +142,12 @@ class ScanCodeNewSummarizer {
 
   _getLicenseExpressionFromFileLicenseDetections(file) {
     const licenseExpressions = file.license_detections.reduce((licenseExpressions, licenseDetection) => {
-      if (licenseDetection.license_expression_spdx) {
-        licenseExpressions.add(licenseDetection.license_expression_spdx)
-      } else {
         licenseDetection.matches.forEach(match => {
           // Only consider matches with a reasonably high score of 80 or higher
           if (match.score >= 80) {
             licenseExpressions.add(match.spdx_license_expression)
           }
         })
-      }
       return licenseExpressions
     }, new Set())
     return joinExpressions(licenseExpressions)
@@ -164,8 +160,7 @@ class ScanCodeNewSummarizer {
 
         const result = { path: file.path }
 
-        const licenseExpression =
-          file.detected_license_expression_spdx || this._getLicenseExpressionFromFileLicenseDetections(file)
+        const licenseExpression = this._getLicenseExpressionFromFileLicenseDetections(file)
         setIfValue(result, 'license', licenseExpression)
 
         if (
